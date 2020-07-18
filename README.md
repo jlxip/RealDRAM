@@ -30,14 +30,16 @@ NAND is the only instruction that updates the flag, which is set to the result o
 
 For example, `101010000000000000000000`. Its bytes would be `10101000 11111111 00000000`, the opcode indicates `NAND-BIT-ITSELF-2`, and the address is `0x00FF`. So, if that address contains `0x00`, the result would be `0x04`. The flag would be `1`, as `NAND(0, 0)=1`.
 
-### Memory loss
+### Memory loss 🧠
 Byte NANDs cost 8 cycles. Any other instruction costs 1 cycle.
 
 When a byte is written for the first time, it starts rotting. Bytes that are not touched in runtime (such as the binary when loaded) do not suffer from the loss, neither read bytes do, so the origin of a NAND-OTHER does not necessarily rot.
 
-To refresh a bit, the naive approach could be to NAND it twice. Better than that, one could NAND it with an origin which is known to be `1`.
+Even if only a bit has been changed, the whole byte starts to rot.
 
-### Memory mapped I/O
+To refresh a bit or a byte, the naive approach could be to NAND it twice. Better than that, one could NAND it with an origin which is known to be `1`.
+
+### Memory mapped I/O 🖮
 The VM supports simple I/O.
 Byte at `0xFFFF` is a buffer for console interaction. It will rot when written by the program. It will not rot when written by the VM. Writing to `0xFFFD` will trigger a read from stdin and put the byte in the buffer. Writing to `0xFFFE` will trigger a write to stdout.
 
