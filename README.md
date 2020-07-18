@@ -1,5 +1,5 @@
 # RealDRAM
-An architecture with non-refresh DRAM.
+An architecture with non-refreshed DRAM.
 
 ## What?
 RealDRAM is a really simple esoteric architecture in which memory is lost after a few cycles (defined at `MEMORY_LOSS`, top of the file, default is 128), so it needs to be refreshed manually. This repository contains a virtual machine for it, made in C++.
@@ -8,27 +8,27 @@ RealDRAM has 8-bit words and 16-bit addresses (64K of memory). It should be Turi
 
 The architecture has no registers, but there is a flag which is updated on NAND operations.
 
-### Opcodes.
-The first bit of the opcode (starting from the left) indicates whether it's a BRANCH (0) or NAND (1).
+### Opcodes 🖥️
+The first bit of the opcode (starting from the left) indicates whether it's a **BRANCH** (`0`) or **NAND** (`1`).
 
-#### BRANCH
+#### BRANCH 🐸
 The branch instruction is a conditional branch, which will only fire if the flag is up.
 
-The second bit of the opcode says whether the branch is direct (0) or indirect (1). The next two bytes have the address.
+The second bit of the opcode says whether the branch is **direct** (`0`) or **indirect** (`1`). The next two bytes have the address.
 
 In direct branches, the jump is quite straightforward. Indirect branches will read two bytes starting from that address and then jump to the address stored there. Remember: Little-Endian.
 
-#### NAND
+#### NAND 🔣
 NAND opcodes have 5 extra bits of information:
-* Bit (0) or byte (1). Whether this NAND affects a single bit or the whole byte pointed by the address.
-* Other (0) or itself (1). If this NAND's origin is the same as the destination. That is, NANDing to itself.
-* HI, MID, LO. Three bits used in bit NANDs, they indicate the bit to touch, so 010 = third bit STARTING FROM THE RIGHT. In byte NANDs they are not checked, so (hint) they can be used to store whatever you want.
+* **Bit** (`0`) or **byte** (`1`). Whether this NAND affects a single bit or the whole byte pointed by the address.
+* **Other** (`0`) or **itself** (`1`). If this NAND's origin is the same as the destination. That is, NANDing to itself.
+* **HI**, **MID**, and **LO**. Three bits used in bit NANDs, they indicate the bit to touch, so `010` = third bit STARTING FROM THE RIGHT. In byte NANDs they are not checked, so (hint) they can be used to store whatever you want.
 
 The next two bytes contain the address of the origin, and if the NAND is not to itself, the following two have the destination.
 
 NAND is the only instruction that updates the flag, which is set to the result of the operation in bit NANDs. In byte NANDs, the OR of all the resulting bits is performed.
 
-For example, `101010000000000000000000`. Its bytes would be `10101000 11111111 00000000`, the opcode indicates `NAND-BIT-ITSELF-2`, and the address is `0x00FF`. So, if that address contains `0x00`, the result would be `0x04`. The flag would be `1`, as NAND(0, 0)=1.
+For example, `101010000000000000000000`. Its bytes would be `10101000 11111111 00000000`, the opcode indicates `NAND-BIT-ITSELF-2`, and the address is `0x00FF`. So, if that address contains `0x00`, the result would be `0x04`. The flag would be `1`, as `NAND(0, 0)=1`.
 
 ### Memory loss
 Byte NANDs cost 8 cycles. Any other instruction costs 1 cycle.
@@ -60,4 +60,4 @@ I propose the following ideas to the community, in case someone wants to waste t
 - [ ] An assembler for RealDRAM.
 - [ ] A high level language. Creating a compiler that makes sure no necessary memory is lost would be quite challenging.
 
-If you do one of this projects, or a cool program for RealDRAM, open an issue and I will link your repo here :D
+If you do one of these projects or a cool program for RealDRAM, open an issue and I will link your repo here :D
