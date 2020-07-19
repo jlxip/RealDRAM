@@ -34,22 +34,17 @@ typedef unsigned long  cycle_t;
 #define BIT_NAND_MID(x) ((x & 0b00001000) >> 2)
 #define BIT_NAND_LO(x)  ((x & 0b00000100) >> 2)
 
+#define IS_OI(x)        (x & 0b00000010)
+#define IS_DI(x)        (x & 0b00000001)
+
 
 // VM state.
 data_t memory[MEM_SIZE] = {0};
 addr_t addr = 0;
 bool flag = false;
 
-struct Expiration {
-	cycle_t cycle;	// Cycle at which the memory is lost.
-	uint8_t bit;	// Bit to lose. 8 if it's the whole byte.
-
-	Expiration() : cycle(0), bit(0) {}
-	Expiration(cycle_t cycle, uint8_t bit) : cycle(cycle), bit(bit) {}
-};
-
 cycle_t cycles = 0;
-std::map<addr_t, Expiration> expire;
+std::map<addr_t, cycle_t> expire;	// cycle at which the byte is lost.
 
 
 // Auxiliary functions.
@@ -63,17 +58,9 @@ data_t readMem(addr_t a) {
 	auto it = expire.find(a);
 	if(it != expire.end()) {
 		// Has been written.
-		Expiration exp = (*it).second;
-		if(exp.cycle <= cycles) {
+		if((*it).second <= cycles) {
 			// Expired!
-			if(exp.bit == 8) {
-				// Whole byte.
-				memory[a] = 0;
-			} else {
-				// bit-th bit.
-				memory[a] &= ~(1 << exp.bit);
-			}
-
+			memory[a] = 0;
 			expire.erase(it);
 		}
 	}
@@ -154,6 +141,12 @@ void execute_nand(data_t opcode, addr_t& naddr) {
 	addr_t orig = getAddr(naddr);
 	addr_t dest = IS_ITSELF(opcode) ? orig : getAddr(naddr);
 
+	// Indirection bits.
+	if(IS_OI(opcode))
+		orig = getAddr(orig);
+	if(IS_DI(opcode))
+		dest = getAddr(dest);
+
 	// Special addresses.
 	switch(dest) {
 	case FLUSHR_ADDR:
@@ -171,7 +164,6 @@ void execute_nand(data_t opcode, addr_t& naddr) {
 		memory[dest] = ~(readMem(orig) & readMem(dest));
 		flag = memory[dest];	// No need to memRead.
 		cycles += 8;
-		expire[dest] = Expiration(cycles + MEMORY_LOSS, 8);
 	} else {
 		// Bit nand.
 		uint8_t bit = BIT_NAND_HI(opcode) | BIT_NAND_MID(opcode) | BIT_NAND_LO(opcode);
@@ -187,6 +179,7 @@ void execute_nand(data_t opcode, addr_t& naddr) {
 			memory[dest] &= ~(1 << bit);
 
 		++cycles;
-		expire[dest] = Expiration(cycles + MEMORY_LOSS, bit);
 	}
+
+	expire[dest] = cycles + MEMORY_LOSS;
 }
