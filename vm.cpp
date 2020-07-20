@@ -130,9 +130,11 @@ bool execute() {
 }
 
 void execute_branch(data_t opcode, addr_t& naddr) {
-	unsigned char iterations = IS_INDIRECT(opcode) ? 2 : 1;
-	while(iterations--)
-		naddr = getAddr(naddr);
+	if(flag) {
+		unsigned char iterations = IS_INDIRECT(opcode) ? 2 : 1;
+		while(iterations--)
+			naddr = getAddr(naddr);
+	}
 
 	++cycles;
 }
