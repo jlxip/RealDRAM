@@ -174,7 +174,7 @@ void execute_nand(data_t opcode, addr_t& naddr) {
 		data_t dorig = (readMem(orig) & mask) >> bit;
 		data_t ddest = (readMem(dest) & mask) >> bit;
 
-		flag = ~(dorig & ddest);
+		flag = (~(dorig & ddest)) & 1;
 		if(flag)
 			memory[dest] |= (1 << bit);
 		else
