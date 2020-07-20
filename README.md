@@ -38,7 +38,7 @@ When a byte is written for the first time, it starts rotting. Bytes that are not
 
 Even if only a bit has been changed, the whole byte starts to rot. However, it's only necessary to change one bit (any) to refresh a whole byte.
 
-To refresh a byte, a naive approach could be to NAND it twice. Better than that, one could NAND it with an origin which is known to be `1`.
+To refresh a byte, an option is to NAND any of its bits twice.
 
 ### Memory mapped I/O 🖮
 The VM supports simple I/O.
