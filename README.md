@@ -2,11 +2,11 @@
 An architecture with non-refreshed DRAM.
 
 ## What?
-RealDRAM is a really simple esoteric architecture in which memory is lost after a few cycles (defined at `MEMORY_LOSS`, top of the file, default is 128), so it needs to be refreshed manually. This repository contains a virtual machine for it, made in C++. Install it with `sudo make install`, and use it like `rdram-vm`.
+RealDRAM is a really simple esoteric architecture in which memory is lost after a few cycles (default is 128), so it needs to be refreshed manually. This repository contains a virtual machine for it, made in C++. Install it with `sudo make install`, and use it like `rdram-vm`.
 
-RealDRAM has 8-bit words and 16-bit addresses (64K of memory). It should be Turing-complete (not proven), even though it has only "two" instructions. These instructions are BRANCH (conditional branch) and NAND. The RealDRAM VM executes raw binaries with data and instructions in them. The binary is loaded at `0x0000`, which is the entry point. The first byte of an instruction is the opcode, and the rest are Little-Endian addresses.
+RealDRAM has 8-bit words and 16-bit addresses (64K of memory). It should be Turing-complete (not proven), even though it has only "two" instructions. These instructions are BRANCH (conditional branch) and NAND. The RealDRAM VM executes a raw binary, loaded at `0x0000`, which is the entry point. The first byte of an instruction is the opcode, and the rest are one or two Little-Endian addresses.
 
-The architecture has no registers, but there is a flag which is updated on NAND operations.
+The architecture has no usable registers, but there is a flag which is updated on NAND operations.
 
 ### Opcodes 🖥️
 The first bit of the opcode (starting from the left) indicates whether it's a **BRANCH** (`0`) or **NAND** (`1`).
@@ -23,11 +23,11 @@ NAND opcodes have 7 extra bits of information:
 * **Bit** (`0`) or **byte** (`1`). Whether this NAND affects a single bit or the whole byte pointed by the address.
 * **Other** (`0`) or **itself** (`1`). If this NAND's origin is the same as the destination. That is, NANDing to itself.
 * **HI**, **MID**, and **LO**. Three bits used in bit NANDs, they indicate the bit to touch, so `010` = third bit STARTING FROM THE RIGHT. In byte NANDs they are not checked, so (hint) they can be used to store whatever you want.
-* **Orig D/I** and **Dest D/I**. If the origin and/or the destination are direct addresses (0) or indirect (1), much like with the branch.
+* **Orig D/I** and **Dest D/I**. If the origin and/or the destination are direct addresses (`0`) or indirect (`1`), much like with the branch.
 
 The next two bytes contain the address of the origin, and if the NAND is not to itself, the following two have the destination.
 
-NAND is the only instruction that updates the flag, which is set to the result of the operation in bit NANDs. In byte NANDs, the OR of all the resulting bits is performed.
+NAND is the only instruction that updates the flag, which is set to the result of the operation in bit NANDs. In byte NANDs, it's the OR of all the resulting bits.
 
 For example, `101010000000000000000000`. Its bytes would be `10101000 11111111 00000000`, the opcode indicates `NAND-BIT-ITSELF-2`, and the address is `0x00FF`. So, if that address contains `0x00`, the result would be `0x04`. The flag would be `1`, as `NAND(0, 0)=1`.
 
@@ -36,9 +36,9 @@ Byte NANDs cost 8 cycles. Any other instruction costs 1 cycle.
 
 When a byte is written for the first time, it starts rotting. Bytes that are not touched in runtime (such as the binary when loaded) do not suffer from the loss, neither read bytes do, so the origin of a NAND-OTHER does not necessarily rot.
 
-Even if only a bit has been changed, the whole byte starts to rot. However, it's only necessary to change one bit to refresh a whole byte.
+Even if only a bit has been changed, the whole byte starts to rot. However, it's only necessary to change one bit (any) to refresh a whole byte.
 
-To refresh a bit or a byte, the naive approach could be to NAND it twice. Better than that, one could NAND it with an origin which is known to be `1`.
+To refresh a byte, a naive approach could be to NAND it twice. Better than that, one could NAND it with an origin which is known to be `1`.
 
 ### Memory mapped I/O 🖮
 The VM supports simple I/O.
@@ -60,7 +60,10 @@ There may be bugs! This was programmed really fast, so probably there's a bug hi
 I propose the following ideas to the community, in case someone wants to waste their time with this:
 - [ ] Prove the architecture is Turing-complete.
 - [ ] A program that adds two numbers from input.
-- [ ] An assembler for RealDRAM.
+- [x] An assembler for RealDRAM. **DONE**, see below.
 - [ ] A high level language. Creating a compiler that makes sure no necessary memory is lost would be quite challenging.
 
 If you do one of these projects or a cool program for RealDRAM, open an issue and I will link your repo here :D
+
+## Related projects
+* I've written an assembler for this architecture, [RDRAMA](https://github.com/jlxip/RDRAMA).
