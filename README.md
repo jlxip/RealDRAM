@@ -4,6 +4,8 @@ An architecture with non-refreshed DRAM.
 ## What?
 RealDRAM is a really simple esoteric architecture in which memory is lost after a few cycles (default is 128), so it needs to be refreshed manually. This repository contains a virtual machine for it, made in C++. Install it with `sudo make install`, and use it like `rdram-vm`.
 
+There is a debug mode to analyze binary executions. Uncomment the second line of `vm.cpp` before compiling to use it. It's disabled by default to boost performance.
+
 RealDRAM has 8-bit words and 16-bit addresses (64K of memory). It should be Turing-complete (not proven), even though it has only "two" instructions. These instructions are BRANCH (conditional branch) and NAND. The RealDRAM VM executes a raw binary, loaded at `0x0000`, which is the entry point. The first byte of an instruction is the opcode, and the rest are one or two Little-Endian addresses.
 
 The architecture has no usable registers, but there is a flag which is updated on NAND operations.
